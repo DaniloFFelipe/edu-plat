@@ -7,16 +7,19 @@ import { AuthUserInput } from './dto/auth-user.input'
 import { UseGuards } from '@nestjs/common'
 import { AuthGuard } from 'src/auth/auth.guard'
 import { CurrentUser } from 'src/auth/current-user.decorator'
+import { Public } from 'src/auth/public'
 
 @Resolver(() => HttpUser)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
+  @Public()
   @Mutation(() => Session, { name: 'register' })
   createUser(@Args('data') input: CreateUserInput) {
     return this.usersService.register(input)
   }
 
+  @Public()
   @Mutation(() => Session, { name: 'signIn' })
   signIn(@Args('data') input: AuthUserInput) {
     return this.usersService.authentication(input)

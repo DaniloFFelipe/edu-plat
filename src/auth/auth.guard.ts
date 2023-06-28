@@ -8,17 +8,27 @@ import { JwtService } from '@nestjs/jwt'
 import { jwtConstants } from './jwt.constants'
 import { Request } from 'express'
 import { GqlExecutionContext } from '@nestjs/graphql'
+import { Reflector } from '@nestjs/core'
+import { IS_PUBLIC_KEY } from './public'
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService, private reflector: Reflector) {}
 
-  getRequest(context: ExecutionContext) {
+  private getRequest(context: ExecutionContext) {
     const ctx = GqlExecutionContext.create(context)
     return ctx.getContext().req
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ])
+    if (isPublic) {
+      return true
+    }
+
     const request = this.getRequest(context)
     const token = this.extractTokenFromHeader(request)
     if (!token) {
